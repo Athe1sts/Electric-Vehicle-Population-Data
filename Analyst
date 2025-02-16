@@ -1,0 +1,107 @@
+# Analyst data
+
+## Electric Vehicle Type 
+vehicle_type_counts = data['Electric Vehicle Type'].value_counts()
+plt.figure(figsize=(10, 8))
+plt.pie(vehicle_type_counts.values, 
+        labels=vehicle_type_counts.index,
+        autopct='%1.1f%%',  
+        shadow=True)
+plt.title('Distribution of Electric Vehicle Type')
+plt.axis('equal')
+plt.legend(loc='best')
+plt.show()
+
+## Electric Vehicle Fuel
+fuel_counts = data['Clean Alternative Fuel Vehicle (CAFV) Eligibility'].value_counts()
+plt.figure(figsize=(10, 8))
+plt.pie(fuel_counts.values, 
+        labels=fuel_counts.index,
+        autopct='%1.1f%%',  
+        shadow=True)
+plt.title('Distribution of Electric Vehicle Fuel Types')
+plt.axis('equal')
+plt.legend(loc='best')
+plt.show()
+
+## Electric Vehicle Range
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=data, x='Electric Vehicle Type', y='Electric Range')
+plt.title('Electric Range by Vehicle Type', pad=15, size=12)
+plt.xlabel('Vehicle Type')
+plt.ylabel('Electric Range (miles)')
+plt.show()
+
+## Model by Year 
+plt.figure(figsize=(10, 6))
+data['Model Year'].value_counts().sort_index().plot(kind='bar')
+plt.title('Distribution of Vehicles by Model Year')
+plt.xlabel('Model Year')
+plt.ylabel('Count')
+plt.show()
+
+## Model by Year and Electric Type 
+fig, ax = plt.subplots(figsize=(10, 6))
+table_year_type.plot(kind='bar', stacked=True, colormap='RdYlGn', ax=ax)
+plt.title('Model by Year and Electric Vehicle Type')
+plt.xlabel('Model Year')
+plt.ylabel('Count of VINs')
+plt.legend(title='Electric Vehicle Type')
+plt.show()
+
+## Range by Manufacturer
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Make', y='Electric Range', data=data)
+plt.title('Electric Range by Manufacturer')
+plt.xlabel('Manufacturer')
+plt.ylabel('Electric Range (miles)')
+plt.xticks(rotation=90)
+plt.show()
+
+## Range of Vehicles over time
+plt.figure(figsize=(10, 6))
+plt.scatter(data['Model Year'], data['Electric Range'], alpha=0.1)
+plt.title('Electric Range of Vehicles Over Time')
+plt.xlabel('Model Year')
+plt.ylabel('Electric Range (miles)')
+plt.grid(True)
+plt.show()
+
+## Top 10 cities registration
+top_cities = data['City'].value_counts().head(10)
+plt.figure(figsize=(10, 6))
+top_cities.plot(kind='bar')
+plt.title('Top 10 Cities by Vehicle Registrations')
+plt.xlabel('City')
+plt.ylabel('Number of Registrations')
+plt.xticks(rotation=45)
+plt.show()
+
+## Georaphical Distributions
+
+# Vehicle Location
+def extract_coordinates(location):
+    match = re.match(r"POINT \(([-\d.]+) ([-\d.]+)\)", location)
+    if match:
+        return float(match.group(1)), float(match.group(2))
+    return None, None
+
+data['Vehicle Location'] = data['Vehicle Location'].astype(str)
+data['Longitude'], data['Latitude'] = zip(*data['Vehicle Location'].map(extract_coordinates))
+data = data.dropna(subset=['Longitude', 'Latitude'])
+
+plt.figure(figsize=(10, 10))
+m = Basemap(projection='merc', 
+            llcrnrlat=45, urcrnrlat=50, 
+            llcrnrlon=-125, urcrnrlon=-116, 
+            resolution='i')
+
+m.drawcoastlines()
+m.drawstates()
+m.drawcountries()
+x, y = m(data['Longitude'].values, data['Latitude'].values)
+
+m.scatter(x, y, s=10, c='red', marker='o', alpha=0.5)
+
+plt.title("Electric Vehicle Locations in Washington State")
+plt.show()
